@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permutation Calculator</title>
+    <style>
+        .cycle-box {
+            margin: 10px 0;
+            display: flex;
+            align-items: center;
+        }
+        .cycle-label {
+            margin-right: 10px;
+            font-size: 18px;
+        }
+        .cycle-box input {
+            width: 70px;
+            height: 40px;
+            margin-right: 5px;
+            font-size: 18px;
+            padding: 5px;
+            text-align: center;
+        }
+        .cycle-box input::placeholder {
+            font-size: 14px;
+        }
+        .cycle-box button {
+            width: 130px;
+            height: 40px;
+            margin-right: 5px;
+            font-size: 18px;
+            padding: 5px;
+            text-align: center;
+        }
+        .add-cycle-btn {
+            margin-top: 10px;
+        }
+        .calculate-btn {
+            margin-top: 20px;
+            padding: 12px 24px;
+            background-color: red;
+            color: white;
+            font-size: 20px;
+            border: none;
+            cursor: pointer;
+        }
+        .calculate-btn:hover {
+            background-color: darkred;
+        }
+        .clear-all-btn {
+            background-color: blue;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            padding: 12px 24px;
+        }
+        .clear-all-btn:hover {
+            background-color: darkblue;
+        }
+        .reset-btn {
+            background-color: blue;
+            color: white;
+            font-size: 18px;
+            border: none;
+            cursor: pointer;
+            margin-top: 20px;
+            padding: 12px 24px;
+            margin-left: 10px;
+        }
+        .reset-btn:hover {
+            background-color: darkblue;
+        }
+        .action-buttons {
+            margin-top: 20px;
+            display: flex;
+            align-items: center;
+        }
+        .result-display {
+            font-size: 20px;
+            margin-left: 20px;
+        }
+        /* Separate underline for each element */
+        .colored {
+            display: inline-block;
+            border-bottom: 2px solid;
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Permutation Calculator</h1>
+
+    <div id="cycle-container">
+        <!-- Initial cycle boxes with cycle index -->
+        <div class="cycle-box">
+            <span class="cycle-label">Cycle 1:</span>
+            <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+            <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+            <button class="add-element-btn" onclick="addElement(this)">Add Element</button>
+            <button class="clear-element-btn" onclick="clearElement(this)">Clear Element</button>
+            <button class="remove-cycle-btn" onclick="removeCycle(this)">Remove</button>
+        </div>
+        <div class="cycle-box">
+            <span class="cycle-label">Cycle 2:</span>
+            <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+            <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+            <button class="add-element-btn" onclick="addElement(this)">Add Element</button>
+            <button class="clear-element-btn" onclick="clearElement(this)">Clear Element</button>
+            <button class="remove-cycle-btn" onclick="removeCycle(this)">Remove</button>
+        </div>
+    </div>
+
+    <label for="cycle-size">Number of elements in the new cycle:</label>
+    <input type="number" id="cycle-size" min="1" value="2">
+
+    <button class="add-cycle-btn" onclick="addCycle()">Add Cycle</button>
+    
+    <div class="action-buttons">
+        <button class="calculate-btn" onclick="calculate()">Calculate</button>
+        <span id="cycle-product" class="result-display"></span>
+    </div>
+
+    <h3>Result: <span id="result"></span></h3>
+
+    <div class="action-buttons">
+        <button class="clear-all-btn" onclick="clearAll()">Clear All</button>
+        <button class="reset-btn" onclick="resetPage()">Reset</button>
+    </div>
+
+    <script>
+        // Predefined colors: black for single digits, red, green, blue for multi-digit elements
+        const colors = ['red', 'green', 'blue'];
+
+        // Function to add a new element box to an existing cycle
+        function addElement(button) {
+            const cycleBox = button.parentNode;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'element-box';
+            input.placeholder = 'Element';
+            input.oninput = updateCycleProduct; // Call updateCycleProduct when input changes
+            cycleBox.insertBefore(input, button);  // Insert the new element box before the Add Element button
+            updateCycleProduct();
+        }
+
+        // Function to clear element values in a single cycle, but keep the boxes
+        function clearElement(button) {
+            const cycleBox = button.parentNode;
+            const elements = cycleBox.querySelectorAll('.element-box');
+            elements.forEach(element => {
+                element.value = '';
+            });
+            updateCycleProduct();
+        }
+
+        // Function to add a new cycle with a specified number of boxes and a cycle index
+        function addCycle() {
+            const container = document.getElementById('cycle-container');
+            const cycleCount = container.children.length + 1;
+            const cycleSize = parseInt(document.getElementById('cycle-size').value);
+            
+            if (cycleSize < 1) {
+                alert("The number of elements must be at least 1.");
+                return;
+            }
+
+            const cycleBox = document.createElement('div');
+            cycleBox.className = 'cycle-box';
+
+            // Add cycle index label
+            const cycleLabel = document.createElement('span');
+            cycleLabel.className = 'cycle-label';
+            cycleLabel.textContent = `Cycle ${cycleCount}:`;
+            cycleBox.appendChild(cycleLabel);
+
+            // Add input boxes based on the specified cycle size
+            for (let i = 0; i < cycleSize; i++) {
+                const input = document.createElement('input');
+                input.type = 'number';
+                input.className = 'element-box';
+                input.placeholder = 'Element';
+                input.oninput = updateCycleProduct; // Call updateCycleProduct when input changes
+                cycleBox.appendChild(input);
+            }
+
+            // Add add element button
+            const addButton = document.createElement('button');
+            addButton.className = 'add-element-btn';
+            addButton.textContent = 'Add Element';
+            addButton.onclick = function() { addElement(this); };
+            cycleBox.appendChild(addButton);
+
+            // Add clear element button
+            const clearButton = document.createElement('button');
+            clearButton.className = 'clear-element-btn';
+            clearButton.textContent = 'Clear Element';
+            clearButton.onclick = function() { clearElement(this); };
+            cycleBox.appendChild(clearButton);
+
+            // Add remove cycle button
+            const removeButton = document.createElement('button');
+            removeButton.className = 'remove-cycle-btn';
+            removeButton.textContent = 'Remove';
+            removeButton.onclick = function() { removeCycle(this); };
+            cycleBox.appendChild(removeButton);
+
+            container.appendChild(cycleBox);
+            updateCycleProduct();
+        }
+
+        // Function to remove a cycle
+        function removeCycle(button) {
+            const cycleBox = button.parentNode;
+            cycleBox.remove();
+
+            // Update cycle indexes
+            const cycleContainer = document.getElementById('cycle-container');
+            const cycleBoxes = cycleContainer.querySelectorAll('.cycle-box');
+            cycleBoxes.forEach((cycleBox, index) => {
+                const cycleLabel = cycleBox.querySelector('.cycle-label');
+                cycleLabel.textContent = `Cycle ${index + 1}:`;
+            });
+            updateCycleProduct();
+        }
+
+        // Function to clear all element values but keep the boxes
+        function clearAll() {
+            const elements = document.querySelectorAll('.element-box');
+            elements.forEach(element => {
+                element.value = '';
+            });
+            updateCycleProduct();
+        }
+
+        // Function to reset the page to its initial state
+        function resetPage() {
+            document.getElementById('cycle-container').innerHTML = `
+                <div class="cycle-box">
+                    <span class="cycle-label">Cycle 1:</span>
+                    <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+                    <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+                    <button class="add-element-btn" onclick="addElement(this)">Add Element</button>
+                    <button class="clear-element-btn" onclick="clearElement(this)">Clear Element</button>
+                    <button class="remove-cycle-btn" onclick="removeCycle(this)">Remove</button>
+                </div>
+                <div class="cycle-box">
+                    <span class="cycle-label">Cycle 2:</span>
+                    <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+                    <input type="number" class="element-box" placeholder="Element" oninput="updateCycleProduct()">
+                    <button class="add-element-btn" onclick="addElement(this)">Add Element</button>
+                    <button class="clear-element-btn" onclick="clearElement(this)">Clear Element</button>
+                    <button class="remove-cycle-btn" onclick="removeCycle(this)">Remove</button>
+                </div>
+            `;
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('cycle-product').innerHTML = '';
+        }
+
+        // Function to update the cycle product dynamically and apply color-coding with separate underline for each element
+        function updateCycleProduct() {
+            const cycles = [];
+            document.querySelectorAll('.cycle-box').forEach(cycleBox => {
+                const elements = Array.from(cycleBox.querySelectorAll('.element-box'))
+                    .map(input => input.value)
+                    .filter(value => value !== '');
+                if (elements.length > 0) {
+                    cycles.push(elements);
+                }
+            });
+
+            const formattedCycles = cycles.map(cycle => {
+                return '(' + cycle.map((element, index) => {
+                    const color = element.length > 1 ? colors[index % colors.length] : 'black';
+                    return `<span class="${element.length > 1 ? 'colored' : ''}" style="color: ${color}; border-bottom-color: ${color};">${element}</span>`;
+                }).join('') + ')';
+            }).join('');
+
+            document.getElementById('cycle-product').innerHTML = formattedCycles;
+        }
+
+        // JavaScript version of the permutation calculator function
+        function permutationCalculator(permutations) {
+            const tracker = {};
+
+            // Initialize tracker with identity mapping
+            permutations.forEach(list => {
+                list.forEach(index => {
+                    tracker[index] = index;
+                });
+            });
+
+            // Calculate the product of the cycles
+            permutations.forEach(list => {
+                const copyOfTracker = {...tracker};
+                Object.entries(copyOfTracker).forEach(([key, value]) => {
+                    if (list.includes(Number(value))) {
+                        const index = list.indexOf(Number(value));
+                        tracker[key] = (index < list.length - 1) ? list[index + 1] : list[0];
+                    }
+                });
+            });
+
+            const visited = new Set();
+            const cycles = [];
+
+            // Extract the resulting cycles
+            Object.entries(tracker).forEach(([key, value]) => {
+                if (!visited.has(Number(key)) && !visited.has(Number(value))) {
+                    const cycle = [Number(key)];
+                    visited.add(Number(key));
+                    let currentValue = Number(value);
+                    cycle.push(currentValue);
+                    visited.add(currentValue);
+
+                    while (!visited.has(tracker[currentValue])) {
+                        currentValue = tracker[currentValue];
+                        cycle.push(Number(currentValue));
+                        visited.add(Number(currentValue));
+                    }
+
+                    if (cycle[0] !== cycle[1]) {
+                        cycles.push(cycle);
+                    }
+                }
+            });
+
+            return cycles;
+        }
+
+        // Function to format the result as (135)(24) or "Identity"
+        function formatCycles(cycles) {
+            if (cycles.length === 0) {
+                return "Identity";
+            }
+            return cycles.map(cycle => `(${cycle.join('')})`).join('');
+        }
+
+        // Function to calculate the result and display with color-coding and separate underlines
+        function calculate() {
+            const cycles = [];
+            document.querySelectorAll('.cycle-box').forEach(cycleBox => {
+                const elements = Array.from(cycleBox.querySelectorAll('.element-box'))
+                    .map(input => parseInt(input.value))
+                    .filter(value => !isNaN(value));
+                if (elements.length > 0) {
+                    cycles.push(elements);
+                }
+            });
+
+            const resultCycles = permutationCalculator(cycles);
+
+            // If there are no cycles (identity), display "Identity"
+            if (resultCycles.length === 0) {
+                document.getElementById('result').innerHTML = "Identity";
+                return;
+            }
+
+            const formattedResult = resultCycles.map(cycle => {
+                return '(' + cycle.map((element, index) => {
+                    const color = element.toString().length > 1 ? colors[index % colors.length] : 'black';
+                    return `<span class="${element.toString().length > 1 ? 'colored' : ''}" style="color: ${color}; border-bottom-color: ${color};">${element}</span>`;
+                }).join('') + ')';
+            }).join('');
+
+            document.getElementById('result').innerHTML = formattedResult;
+        }
+    </script>
+</body>
+</html>
