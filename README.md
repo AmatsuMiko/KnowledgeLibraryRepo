@@ -1,0 +1,1 @@
+Added an interactive HTML interface for calculating permutation cycle products, with the HTML interface developed in collaboration with ChatGPT. The algorithm and cycle product computation were implemented independently, while ChatGPT assisted in creating the dynamic and user-friendly interface
