@@ -1,4 +1,4 @@
-This is my personal library of some of my indie&group works.
+This is my personal library of some of my inde&group works.
 
 
 PDF:
